@@ -1,9 +1,10 @@
 <template>
-    <div class="container" ref="app">
+    <div class="container">
         <div class="alert" ref="alertMessage">
           <p>Welcome to my weather app!</p>
         </div>
         <div class="my-app">
+            <div class="overlay">
             <header>
                 <h2>&lt;MY WEATHER APP&#47;&gt;</h2>
             </header>
@@ -14,10 +15,10 @@
                 </h1>
 
                 <div class="spans">
-                    <img src='@/assets/icons/day/cloudy.png' alt="Weather Icon" class="icon" ref="icon">
+                    <img src='@/assets/icons/night/cloudy.png' alt="Weather Icon" class="icon">
                     <div>
                         <span class="temperature">
-                            {{ temperature }}&#176;
+                            {{ temperature }}&#176;C
                         </span>
                         <br>
                         <span class="weather-state">{{ weatherState }}</span>
@@ -52,6 +53,7 @@
                     <button @click="submit" type="submit" class="submit">Search</button>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 </template>
@@ -71,7 +73,31 @@ export default ({
       cloudy: '63',
       windy: '10',
       getCity: 'London',
-      apiKey: '7db099c65236433a9f4122528222104'
+      apiKey: process.env.VUE_APP_API_KEY,
+      dayImages: [
+        { id: 0, src: require('@/assets/images/day/clear.jpg'), alt: 'Sunny day' },
+        { id: 1, src: require('@/assets/images/day/cloudy.jpg'), alt: 'Cloudy day' },
+        { id: 2, src: require('@/assets/images/day/rainy.jpg'), alt: 'Rainy day' },
+        { id: 3, src: require('@/assets/images/day/snowy.jpg'), alt: 'Snowy day' }
+      ],
+      nightImages: [
+        { id: 0, src: require('@/assets/images/night/clear.jpg'), alt: 'Clear night skies' },
+        { id: 1, src: require('@/assets/images/night/cloudy.jpg'), alt: 'Cloudy night' },
+        { id: 2, src: require('@/assets/images/night/rainy.jpg'), alt: 'Rainy night' },
+        { id: 3, src: require('@/assets/images/night/snowy.jpg'), alt: 'Snowy night' }
+      ],
+      dayIcons: [
+        { id: 0, src: require('@/assets/icons/day/clear.png'), alt: 'Sunny day' },
+        { id: 1, src: require('@/assets/icons/day/cloudy.png'), alt: 'Cloudy day' },
+        { id: 2, src: require('@/assets/icons/day/rainy.png'), alt: 'Rainy day' },
+        { id: 3, src: require('@/assets/icons/day/snowy.png'), alt: 'Snowy day' }
+      ],
+      nightIcons: [
+        { id: 0, src: require('@/assets/icons/night/clear.png'), alt: 'Clear skies' },
+        { id: 1, src: require('@/assets/icons/night/cloudy.png'), alt: 'Cloudy night' },
+        { id: 2, src: require('@/assets/icons/night/rainy.png'), alt: 'Rainy night' },
+        { id: 3, src: require('@/assets/icons/night/snowy.png'), alt: 'Snowy night' }
+      ]
     }
   },
   methods: {
@@ -110,16 +136,18 @@ export default ({
           this.humidity = data.current.humidity
           this.windy = data.current.wind_kph
 
-          let currentTime = 'day'
+          const myApp = this.$el.querySelector('.my-app')
+          const icon = this.$el.querySelector('.icon')
+
           const code = data.current.condition.code
-
-          if (!data.current.is_day) {
-            currentTime = 'night'
-          }
-
           if (code === 1000) {
-            this.$refs.app.style.backgroundImage = `url(@/assets/images/${currentTime}/clear.jpg)`
-            this.$refs.icon.src = `@/assets/icons/${currentTime}/clear.png`
+            if (data.current.is_day) {
+              myApp.style.backgroundImage = `url(${this.dayImages[0].src})`
+              icon.src = this.dayIcons[0].src
+            } else {
+              myApp.style.backgroundImage = `url(${this.nightImages[0].src})`
+              icon.src = this.nightIcons[0].src
+            }
           } else if (
             code === 1003 ||
             code === 1006 ||
@@ -133,8 +161,13 @@ export default ({
             code === 1279 ||
             code === 1282
           ) {
-            this.$refs.app.style.backgroundImage = `url('@/assets/images/${currentTime}/cloudy.jpg')`
-            this.$refs.icon.src = `@/assets/icons/${currentTime}/cloudy.png`
+            if (data.current.is_day) {
+              myApp.style.backgroundImage = `url(${this.dayImages[1].src})`
+              icon.src = this.dayIcons[1].src
+            } else {
+              myApp.style.backgroundImage = `url(${this.nightImages[1].src})`
+              icon.src = this.nightIcons[1].src
+            }
           } else if (
             code === 1063 ||
             code === 1069 ||
@@ -155,15 +188,24 @@ export default ({
             code === 1249 ||
             code === 1252
           ) {
-            this.$refs.app.style.backgroundImage = `url(@/assets/images/${currentTime}/rainy.jpg)`
-            this.$refs.icon.src = `@/assets/icons/${currentTime}/rainy.png`
+            if (data.current.is_day) {
+              myApp.style.backgroundImage = `url(${this.dayImages[2].src})`
+              icon.src = this.dayIcons[2].src
+            } else {
+              myApp.style.backgroundImage = `url(${this.nightImages[2].src})`
+              icon.src = this.nightIcons[2].src
+            }
           } else {
-            this.$refs.app.style.backgroundImage = `url(@/assets/images/${currentTime}/snowy.jpg)`
-            this.$refs.icon.src = `@/assets/icons/${currentTime}/snowy.png`
+            if (data.current.is_day) {
+              myApp.style.backgroundImage = `url(${this.dayImages[3].src})`
+              icon.src = this.dayIcons[3].src
+            } else {
+              myApp.style.backgroundImage = `url(${this.nightImages[3].src})`
+              icon.src = this.nightIcons[3].src
+            }
           }
         })
         .catch(() => {
-          this.$alert('Hello Vue Simple Alert.')
           alert('An error occurred, please try again later')
         })
     },
@@ -198,17 +240,18 @@ export default ({
               this.humidity = data.current.humidity
               this.windy = data.current.wind_kph
 
-              let currentTime = 'day'
+              const myApp = this.$el.querySelector('.my-app')
+              const icon = this.$el.querySelector('.icon')
+
               const code = data.current.condition.code
-
-              if (!data.current.is_day) {
-                currentTime = 'night'
-              }
-
               if (code === 1000) {
-                this.$refs.app.style.backgroundImage = `url('@/assets/images/${currentTime}/clear.jpg')`
-                console.log(this.$refs.app.style)
-                this.$refs.icon.src = `@/assets/icons/${currentTime}/clear.png`
+                if (data.current.is_day) {
+                  myApp.style.backgroundImage = `url(${this.dayImages[0].src})`
+                  icon.src = this.dayIcons[0].src
+                } else {
+                  myApp.style.backgroundImage = `url(${this.nightImages[0].src})`
+                  icon.src = this.nightIcons[0].src
+                }
               } else if (
                 code === 1003 ||
                 code === 1006 ||
@@ -222,9 +265,13 @@ export default ({
                 code === 1279 ||
                 code === 1282
               ) {
-                this.$refs.app.style.backgroundImage = `url('@/assets/images/${currentTime}/cloudy.jpg')`
-                console.log(this.$refs.app.style)
-                this.$refs.icon.src = `@/assets/icons/${currentTime}/cloudy.png)`
+                if (data.current.is_day) {
+                  myApp.style.backgroundImage = `url(${this.dayImages[1].src})`
+                  icon.src = this.dayIcons[1].src
+                } else {
+                  myApp.style.backgroundImage = `url(${this.nightImages[1].src})`
+                  icon.src = this.nightIcons[1].src
+                }
               } else if (
                 code === 1063 ||
                 code === 1072 ||
@@ -244,15 +291,25 @@ export default ({
                 code === 1249 ||
                 code === 1252
               ) {
-                this.$refs.app.style.backgroundImage = 'url("@/assets/images/day/cloudy.jpg")'
-                this.$refs.icon.src = `@/assets/icons/${currentTime}/rainy.png`
+                if (data.current.is_day) {
+                  myApp.style.backgroundImage = `url(${this.dayImages[2].src})`
+                  icon.src = this.dayIcons[2].src
+                } else {
+                  myApp.style.backgroundImage = `url(${this.nightImages[2].src})`
+                  icon.src = this.nightIcons[2].src
+                }
               } else {
-                this.$refs.app.style.backgroundImage = `url('@/assets/images/${currentTime}/snowy.jpg')`
-                this.$refs.icon.src = `@/assets/icons/${currentTime}/snowy.png`
+                if (data.current.is_day) {
+                  myApp.style.backgroundImage = `url(${this.dayImages[3].src})`
+                  icon.src = this.dayIcons[3].src
+                } else {
+                  myApp.style.backgroundImage = `url(${this.nightImages[3].src})`
+                  icon.src = this.nightIcons[3].src
+                }
               }
             })
             .catch(() => {
-              alert('An Error occurred, please try again later.')
+              alert('An error occurred, please try again later.')
             })
         })
       }
@@ -280,6 +337,7 @@ export default ({
     }
   },
   mounted () {
+    // console.log(process.env.VUE_APP_API_KEY)
     this.getMyLocation()
   }
 })
@@ -304,22 +362,17 @@ body{
 div.container{
     width:100%;
     min-height: 100vh;
-    background: url('@/assets/images/night/cloudy.jpg') center no-repeat;
-    background-size: cover;
-    color: #fff;
     position: relative;
-    transition: 500ms;
 }
 
-div.container::before{
+div.overlay{
     width: 100%;
     height: 100%;
-    content: '';
     position: absolute;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
 }
 
 div.my-app{
@@ -328,6 +381,13 @@ div.my-app{
     position: absolute;
     top: 0;
     left: 0;
+    background-image: url('@/assets/images/night/cloudy.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: #fff;
+    transition: 500ms;
+    z-index: 2;
 }
 
 div.alert{
